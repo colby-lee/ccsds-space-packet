@@ -15,7 +15,7 @@ encodePacket(&h, payload, sizeof(payload), packet, sizeof(packet), &len);
 ```
 
 ## Build
-`gcc -Wall -Wextra -Wconversion -std=c11 ccsds.c test.c -o test`
+`gcc -Wall -Wextra -Wconversion -std=c11 ccsds.c test.c -o test`  
 `./test`
 
 ## Notes
