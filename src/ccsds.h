@@ -5,6 +5,8 @@
 #include <stdlib.h> 
 #include <stddef.h>
 
+#include "byteorder.h"
+
 
 #define CCSDS_PRIMARY_HEADER_SIZE 6
 
@@ -28,13 +30,6 @@ typedef enum {
     CCSDS_TRUNCATED,
     CCSDS_INVALID_LENGTH
 } CcsdsStatus;
-
-
-uint16_t readU16BE(const uint8_t* p);
-uint32_t readU32BE(const uint8_t* p);
-
-void writeU16BE(uint8_t* p, uint16_t v);
-void writeU32BE(uint8_t* p, uint32_t v);
 
 void encodeHeader(const SpacePacketHeader* h, uint8_t* out);
 void decodeHeader(const uint8_t* in, SpacePacketHeader* h);
