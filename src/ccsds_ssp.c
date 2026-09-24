@@ -1,9 +1,9 @@
 #include <string.h>
 
-#include "ccsds.h"
+#include "ccsds_ssp.h"
 
 
-void encodeHeader(const SpacePacketHeader* h, uint8_t* out) {
+void sspEncodeHeader(const SpacePacketHeader* h, uint8_t* out) {
     uint16_t w0 = 0;
     uint16_t w1 = 0;
     uint16_t w2 = 0;
@@ -23,7 +23,7 @@ void encodeHeader(const SpacePacketHeader* h, uint8_t* out) {
     writeU16BE(out + 4, w2);
 }
 
-void decodeHeader(const uint8_t* in, SpacePacketHeader* h) {
+void sspDecodeHeader(const uint8_t* in, SpacePacketHeader* h) {
     uint16_t w0 = readU16BE(in);
     uint16_t w1 = readU16BE(in + 2);
     uint16_t w2 = readU16BE(in + 4);
@@ -39,7 +39,7 @@ void decodeHeader(const uint8_t* in, SpacePacketHeader* h) {
     h->dataLength = w2;
 }
 
-CcsdsStatus encodePacket(const SpacePacketHeader *h,
+CcsdsStatus sspEncodePacket(const SpacePacketHeader *h,
                          const uint8_t *payload, size_t payloadLen,
                          uint8_t *out, size_t outLen,
                          size_t *bytesWritten) {
@@ -48,34 +48,34 @@ CcsdsStatus encodePacket(const SpacePacketHeader *h,
         return CCSDS_INVALID_LENGTH;
     }
 
-    if (outLen < CCSDS_PRIMARY_HEADER_SIZE + payloadLen) {
+    if (outLen < CCSDS_SPP_PRIMARY_HEADER_SIZE + payloadLen) {
         return CCSDS_BUFFER_TOO_SMALL;
     }
 
     SpacePacketHeader headerc = *h;
     headerc.dataLength =  (uint16_t)(payloadLen - 1);
 
-    encodeHeader(&headerc, out);
-    memcpy(out + CCSDS_PRIMARY_HEADER_SIZE, payload, payloadLen);
+    sspEncodeHeader(&headerc, out);
+    memcpy(out + CCSDS_SPP_PRIMARY_HEADER_SIZE, payload, payloadLen);
 
-    *bytesWritten = CCSDS_PRIMARY_HEADER_SIZE + payloadLen;
+    *bytesWritten = CCSDS_SPP_PRIMARY_HEADER_SIZE + payloadLen;
 
     return CCSDS_OK;
 }
 
-CcsdsStatus decodePacket(const uint8_t *in, size_t inLen,
+CcsdsStatus sspDecodePacket(const uint8_t *in, size_t inLen,
                          SpacePacketHeader *h,
                          const uint8_t **payload, size_t *payloadLen) {
     
-    if (inLen < CCSDS_PRIMARY_HEADER_SIZE) {
+    if (inLen < CCSDS_SPP_PRIMARY_HEADER_SIZE) {
         return CCSDS_TRUNCATED;
     }
 
-    decodeHeader(in, h);
+    sspDecodeHeader(in, h);
 
     size_t claimedLen = h->dataLength + 1;
 
-    if (claimedLen + CCSDS_PRIMARY_HEADER_SIZE > inLen) {
+    if (claimedLen + CCSDS_SPP_PRIMARY_HEADER_SIZE > inLen) {
         return CCSDS_TRUNCATED;
     }
 

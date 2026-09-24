@@ -35,7 +35,7 @@ int main(void) {
         uint8_t packet[12];
         size_t packetLen;
         
-        if (encodePacket(&h, payload, 6, packet, sizeof(packet), &packetLen) != CCSDS_OK) {
+        if (sspEncodePacket(&h, payload, 6, packet, sizeof(packet), &packetLen) != SSP_OK) {
             printf("encode failed\n");
             continue;
         }

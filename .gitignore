@@ -3,3 +3,4 @@ build/
 *.uf2
 *.elf
 run_tests
+.vscode/

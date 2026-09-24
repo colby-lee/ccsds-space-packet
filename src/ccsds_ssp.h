@@ -1,14 +1,15 @@
-#ifndef CCSDS_H
-#define CCSDS_H
+#ifndef CCSDS_SSP_H
+#define CCSDS_SSP_H
 
 #include <stdint.h>
 #include <stdlib.h> 
 #include <stddef.h>
 
 #include "byteorder.h"
+#include "ccsds_status.h"
 
 
-#define CCSDS_PRIMARY_HEADER_SIZE 6
+#define CCSDS_SPP_PRIMARY_HEADER_SIZE 6
 
 typedef struct {
     // word 0
@@ -23,18 +24,10 @@ typedef struct {
     uint16_t dataLength;    // 16 bits - payload minus one
 } SpacePacketHeader;
 
+void sspEncodeHeader(const SpacePacketHeader* h, uint8_t* out);
+void sspDecodeHeader(const uint8_t* in, SpacePacketHeader* h);
 
-typedef enum {
-    CCSDS_OK = 0,
-    CCSDS_BUFFER_TOO_SMALL,
-    CCSDS_TRUNCATED,
-    CCSDS_INVALID_LENGTH
-} CcsdsStatus;
-
-void encodeHeader(const SpacePacketHeader* h, uint8_t* out);
-void decodeHeader(const uint8_t* in, SpacePacketHeader* h);
-
-CcsdsStatus encodePacket(const SpacePacketHeader *h,
+CcsdsStatus sspEncodePacket(const SpacePacketHeader *h,
                          const uint8_t *payload, size_t payloadLen,
                          uint8_t *out, size_t outLen,
                          size_t *bytesWritten);

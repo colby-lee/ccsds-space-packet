@@ -4,7 +4,7 @@
 #include <stdio.h> 
 #include <string.h>
 
-#include "ccsds.h"
+#include "ssp_ccsds.h"
 
 
 int main() {
@@ -13,7 +13,7 @@ int main() {
     SpacePacketHeader v1 = {0, 0, 1, 100, 3, 1, 9};
     uint8_t expected[6] = {0x08, 0x64, 0xC0, 0x01, 0x00, 0x09};
     uint8_t got[6];
-    encodeHeader(&v1, got);
+    sspEncodeHeader(&v1, got);
     assert(memcmp(got, expected, 6) == 0);
 
     for (int i = 0; i < 1000; ++i) {
@@ -27,11 +27,11 @@ int main() {
         h.dataLength = (uint16_t)(rand() & 0xFFFF);
 
         uint8_t buf[6];
-        encodeHeader(&h, buf);
+        sspEncodeHeader(&h, buf);
 
         SpacePacketHeader out;
 
-        decodeHeader(buf, &out);
+        sspDecodeHeader(buf, &out);
 
         assert(out.version == h.version);
         assert(out.secHdrFlag == h.secHdrFlag);
