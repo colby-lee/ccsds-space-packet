@@ -4,16 +4,18 @@
 #include <stdio.h> 
 #include <string.h>
 
-#include "ssp_ccsds.h"
+#include "ccsds_spp.h"
+#include "ccsds_tm.h"
 
 
 int main() {
-    printf("Hello, space packets\n");
+    
+    printf("Testing space packet protocol implementation...\n");
 
     SpacePacketHeader v1 = {0, 0, 1, 100, 3, 1, 9};
     uint8_t expected[6] = {0x08, 0x64, 0xC0, 0x01, 0x00, 0x09};
     uint8_t got[6];
-    sspEncodeHeader(&v1, got);
+    sppEncodeHeader(&v1, got);
     assert(memcmp(got, expected, 6) == 0);
 
     for (int i = 0; i < 1000; ++i) {
@@ -27,11 +29,11 @@ int main() {
         h.dataLength = (uint16_t)(rand() & 0xFFFF);
 
         uint8_t buf[6];
-        sspEncodeHeader(&h, buf);
+        sppEncodeHeader(&h, buf);
 
         SpacePacketHeader out;
 
-        sspDecodeHeader(buf, &out);
+        sppDecodeHeader(buf, &out);
 
         assert(out.version == h.version);
         assert(out.secHdrFlag == h.secHdrFlag);
@@ -44,7 +46,51 @@ int main() {
         assert(out.dataLength == h.dataLength);
     }
 
-    printf("all tests passed\n");
+    printf("space packet protocol tests passed\n");
+
+    printf("Testing TM frame implementation...\n");
+
+    TMFrameHeader tm1 = {1, 17, 3, 0, 45, 66, 0, 1, 0, 2, 64};
+    uint8_t expectedTm[6] = {0x41, 0x16, 0x2d, 0x42, 0x50, 0x40};
+    uint8_t gotTm[6];
+    tmEncodeHeader(&tm1, gotTm);
+    assert(memcmp(gotTm, expectedTm, 6) == 0);
+
+    for (int i = 0; i < 1000; ++i) {
+        TMFrameHeader h;
+        h.version                  = rand() & 0x03;
+        h.spacecraftId             = rand() & 0x3FF;
+        h.virtualChannel           = rand() & 0x07;
+        h.ocfFlag                  = rand() & 0x01;
+        h.masterChannelFrameCount  = (uint8_t)(rand() & 0xFF);
+        h.virtualChannelFrameCount = (uint8_t)(rand() & 0xFF);
+        h.secHdrFlag               = rand() & 0x01;
+        h.syncFlag                 = rand() & 0x01;
+        h.pktOrderFlag             = rand() & 0x01;
+        h.segLengthId              = rand() & 0x03;
+        h.firstHeaderPointer       = rand() & 0x7FF;
+
+        uint8_t buf[6];
+        tmEncodeHeader(&h, buf);
+
+        TMFrameHeader out;
+
+        tmDecodeHeader(buf, &out);
+
+        assert(out.version == h.version);
+        assert(out.spacecraftId == h.spacecraftId);
+        assert(out.virtualChannel == h.virtualChannel);
+        assert(out.ocfFlag == h.ocfFlag);
+        assert(out.masterChannelFrameCount == h.masterChannelFrameCount);
+        assert(out.virtualChannelFrameCount == h.virtualChannelFrameCount);
+        assert(out.secHdrFlag == h.secHdrFlag);
+        assert(out.syncFlag == h.syncFlag);
+        assert(out.pktOrderFlag == h.pktOrderFlag);
+        assert(out.segLengthId == h.segLengthId);
+        assert(out.firstHeaderPointer == h.firstHeaderPointer);
+    }
+
+    printf("TM frame tests passed...\n");
 
     return 0;
 }

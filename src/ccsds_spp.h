@@ -24,12 +24,16 @@ typedef struct {
     uint16_t dataLength;    // 16 bits - payload minus one
 } SpacePacketHeader;
 
-void sspEncodeHeader(const SpacePacketHeader* h, uint8_t* out);
-void sspDecodeHeader(const uint8_t* in, SpacePacketHeader* h);
+void sppEncodeHeader(const SpacePacketHeader* h, uint8_t* out);
+void sppDecodeHeader(const uint8_t* in, SpacePacketHeader* h);
 
-CcsdsStatus sspEncodePacket(const SpacePacketHeader *h,
-                         const uint8_t *payload, size_t payloadLen,
-                         uint8_t *out, size_t outLen,
-                         size_t *bytesWritten);
+CcsdsStatus sppEncodePacket(const SpacePacketHeader *h,
+                        const uint8_t *payload, size_t payloadLen,
+                        uint8_t *out, size_t outLen,
+                        size_t *bytesWritten);
+
+CcsdsStatus sppDecodePacket(const uint8_t *in, size_t inLen,
+                         SpacePacketHeader *h,
+                         const uint8_t **payload, size_t *payloadLen);
 
 #endif

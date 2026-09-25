@@ -1,9 +1,9 @@
 #include <string.h>
 
-#include "ccsds_ssp.h"
+#include "ccsds_spp.h"
 
 
-void sspEncodeHeader(const SpacePacketHeader* h, uint8_t* out) {
+void sppEncodeHeader(const SpacePacketHeader* h, uint8_t* out) {
     uint16_t w0 = 0;
     uint16_t w1 = 0;
     uint16_t w2 = 0;
@@ -23,7 +23,7 @@ void sspEncodeHeader(const SpacePacketHeader* h, uint8_t* out) {
     writeU16BE(out + 4, w2);
 }
 
-void sspDecodeHeader(const uint8_t* in, SpacePacketHeader* h) {
+void sppDecodeHeader(const uint8_t* in, SpacePacketHeader* h) {
     uint16_t w0 = readU16BE(in);
     uint16_t w1 = readU16BE(in + 2);
     uint16_t w2 = readU16BE(in + 4);
@@ -39,7 +39,7 @@ void sspDecodeHeader(const uint8_t* in, SpacePacketHeader* h) {
     h->dataLength = w2;
 }
 
-CcsdsStatus sspEncodePacket(const SpacePacketHeader *h,
+CcsdsStatus sppEncodePacket(const SpacePacketHeader *h,
                          const uint8_t *payload, size_t payloadLen,
                          uint8_t *out, size_t outLen,
                          size_t *bytesWritten) {
@@ -55,7 +55,7 @@ CcsdsStatus sspEncodePacket(const SpacePacketHeader *h,
     SpacePacketHeader headerc = *h;
     headerc.dataLength =  (uint16_t)(payloadLen - 1);
 
-    sspEncodeHeader(&headerc, out);
+    sppEncodeHeader(&headerc, out);
     memcpy(out + CCSDS_SPP_PRIMARY_HEADER_SIZE, payload, payloadLen);
 
     *bytesWritten = CCSDS_SPP_PRIMARY_HEADER_SIZE + payloadLen;
@@ -63,7 +63,7 @@ CcsdsStatus sspEncodePacket(const SpacePacketHeader *h,
     return CCSDS_OK;
 }
 
-CcsdsStatus sspDecodePacket(const uint8_t *in, size_t inLen,
+CcsdsStatus sppDecodePacket(const uint8_t *in, size_t inLen,
                          SpacePacketHeader *h,
                          const uint8_t **payload, size_t *payloadLen) {
     
@@ -71,7 +71,7 @@ CcsdsStatus sspDecodePacket(const uint8_t *in, size_t inLen,
         return CCSDS_TRUNCATED;
     }
 
-    sspDecodeHeader(in, h);
+    sppDecodeHeader(in, h);
 
     size_t claimedLen = h->dataLength + 1;
 

@@ -32,6 +32,8 @@ typedef struct {
 
 void tmEncodeHeader(const TMFrameHeader* h, uint8_t* out);
 
+void tmDecodeHeader(const uint8_t* in, TMFrameHeader* h);
+
 CcsdsStatus tmEncodeFrame(const TMFrameHeader* h,
                         const uint8_t* data, size_t dataLen,
                         uint8_t* out, size_t outLen, 

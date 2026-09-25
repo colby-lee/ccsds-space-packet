@@ -2,7 +2,7 @@
 #include "pico/stdlib.h"
 #include "pico/time.h"
 #include "hardware/adc.h"
-#include  "ccsds.h"          
+#include  "ccsds_spp.h"          
 
 int main(void) {
     stdio_init_all();
@@ -35,7 +35,7 @@ int main(void) {
         uint8_t packet[12];
         size_t packetLen;
         
-        if (sspEncodePacket(&h, payload, 6, packet, sizeof(packet), &packetLen) != SSP_OK) {
+        if (sppEncodePacket(&h, payload, 6, packet, sizeof(packet), &packetLen) != SSP_OK) {
             printf("encode failed\n");
             continue;
         }

@@ -24,6 +24,26 @@ void tmEncodeHeader(const TMFrameHeader* h, uint8_t* out) {
     writeU16BE(out + 4, w2);
 }
 
+void tmDecodeHeader(const uint8_t *in, TMFrameHeader *h) {
+    uint16_t w0 = readU16BE(in);
+    uint16_t w1 = readU16BE(in + 2);
+    uint16_t w2 = readU16BE(in + 4);
+
+    h->ocfFlag = w0 &0x01;
+    h->virtualChannel = (w0 >> 1) & 0x07;
+    h->spacecraftId = (w0 >> 4) & 0x3FF;
+    h->version = (w0 >> 14) & 0x3;
+
+    h->virtualChannelFrameCount = (uint8_t)(w1 & 0xFF);
+    h->masterChannelFrameCount = (uint8_t)((w1 >> 8) & 0xFF);
+
+    h->firstHeaderPointer = w2 & 0x7FF;
+    h->segLengthId = (w2 >> 11) & 0x3;
+    h->pktOrderFlag = (w2 >> 13) & 0x1;
+    h->syncFlag = (w2 >> 14) & 0x1;
+    h->secHdrFlag = (w2 >> 15) & 0x1;
+}
+
 CcsdsStatus tmEncodeFrame(const TMFrameHeader* h,
                         const uint8_t* data, size_t dataLen,
                         uint8_t* out, size_t outLen, 
