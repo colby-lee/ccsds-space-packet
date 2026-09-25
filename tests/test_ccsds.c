@@ -48,7 +48,9 @@ int main() {
 
     printf("space packet protocol tests passed\n");
 
-    printf("Testing TM frame implementation...\n");
+    /// ----------------------------------------------------------------------------
+
+    printf("Testing TM frame header implementation...\n");
 
     TMFrameHeader tm1 = {1, 17, 3, 0, 45, 66, 0, 1, 0, 2, 64};
     uint8_t expectedTm[6] = {0x41, 0x16, 0x2d, 0x42, 0x50, 0x40};
@@ -90,7 +92,68 @@ int main() {
         assert(out.firstHeaderPointer == h.firstHeaderPointer);
     }
 
-    printf("TM frame tests passed...\n");
+    printf("TM frame header tests passed...\n");
+
+    //----------------------------------------------------------------------
+
+    printf("Testing TM CRC...\n");
+
+    const char *msg = "123456789";
+    uint16_t crc = tmComputeCrc16((const uint8_t*)msg, 9);
+    printf("crc = %04X\n", crc);
+    assert(crc == 0x29B1);
+
+    printf("TM CRC test passed\n");
+
+    //---------------------------------------------------------------------
+
+    printf("Testing TM Frame encoding...\n");
+
+    TMFrameHeader tmh = {1, 17, 3, 0, 45, 66, 0, 1, 0, 2, 64};
+    SpacePacketHeader spph = {0, 0, 1, 100, 3, 1, 9};
+
+    uint8_t packet[6];
+    sppEncodeHeader(&spph, packet);
+
+    uint8_t out[128];
+    size_t bytesWritten = 0;
+
+    CcsdsStatus st = tmEncodeFrame(&tmh, packet, sizeof(packet),
+                                out, sizeof(out), &bytesWritten);
+    assert(st == CCSDS_OK);
+    assert(bytesWritten == CCSDS_TM_FRAME_LENGTH);
+
+    TMFrameHeader tmh2;
+    const uint8_t* data = NULL;
+    size_t dataLen = 0;
+
+    CcsdsStatus st2 = tmDecodeFrame(out, bytesWritten, &tmh2,
+                                &data, &dataLen);
+
+    assert(st2 == CCSDS_OK);
+    assert(dataLen == CCSDS_TM_DATA_FIELD_SIZE);
+    assert(memcmp(data, packet, sizeof(packet)) == 0);
+
+
+    assert(tmh2.version == tmh.version);
+    assert(tmh2.spacecraftId == tmh.spacecraftId);
+    assert(tmh2.virtualChannel == tmh.virtualChannel);
+    assert(tmh2.ocfFlag == tmh.ocfFlag);
+    assert(tmh2.masterChannelFrameCount == tmh.masterChannelFrameCount);
+    assert(tmh2.virtualChannelFrameCount == tmh.virtualChannelFrameCount);
+    assert(tmh2.secHdrFlag == tmh.secHdrFlag);
+    assert(tmh2.syncFlag == tmh.syncFlag);
+    assert(tmh2.pktOrderFlag == tmh.pktOrderFlag);
+    assert(tmh2.segLengthId == tmh.segLengthId);
+    assert(tmh2.firstHeaderPointer == tmh.firstHeaderPointer);
+
+
+    out[50] ^= 0xFF;
+    assert(tmDecodeFrame(out, bytesWritten, &tmh2, &data, &dataLen) == CCSDS_CRC_FAILED);
+    out[50] ^= 0xFF;
+    
+    printf("TM Frame encoding tests passed\n");
+
 
     return 0;
 }

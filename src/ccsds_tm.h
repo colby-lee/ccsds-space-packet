@@ -11,6 +11,11 @@
 
 
 #define CCSDS_TM_PRIMARY_HEADER_SIZE 6
+#define CCSDS_TM_CRC_SIZE            2
+#define CCSDS_TM_FRAME_LENGTH        128
+#define CCSDS_TM_DATA_FIELD_SIZE \
+    (CCSDS_TM_FRAME_LENGTH - CCSDS_TM_PRIMARY_HEADER_SIZE - CCSDS_TM_CRC_SIZE)
+#define CCSDS_TM_CRC_COVERAGE (CCSDS_TM_PRIMARY_HEADER_SIZE + CCSDS_TM_DATA_FIELD_SIZE)
 
 typedef struct {
     // word 0
@@ -38,6 +43,13 @@ CcsdsStatus tmEncodeFrame(const TMFrameHeader* h,
                         const uint8_t* data, size_t dataLen,
                         uint8_t* out, size_t outLen, 
                         size_t* bytesWritten);
+
+CcsdsStatus tmDecodeFrame(const uint8_t* in, size_t inLen, 
+                        TMFrameHeader* h, 
+                        const uint8_t** data, size_t* dataLen);
+
+
+uint16_t tmComputeCrc16(const uint8_t *data, size_t len);
 
 
 #endif

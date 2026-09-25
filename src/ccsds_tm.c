@@ -49,19 +49,65 @@ CcsdsStatus tmEncodeFrame(const TMFrameHeader* h,
                         uint8_t* out, size_t outLen, 
                         size_t* bytesWritten) {
 
-    if (dataLen == 0 || dataLen > 2048) {
+    if (dataLen == 0 || dataLen > CCSDS_TM_DATA_FIELD_SIZE) {
         return CCSDS_INVALID_LENGTH;
     }
 
-    if (outLen < CCSDS_TM_PRIMARY_HEADER_SIZE + dataLen) {
+    if (outLen < CCSDS_TM_FRAME_LENGTH) {
         return CCSDS_BUFFER_TOO_SMALL;
     }
     
     tmEncodeHeader(h, out);
     memcpy(out + CCSDS_TM_PRIMARY_HEADER_SIZE, data, dataLen);
 
-    *bytesWritten = CCSDS_TM_PRIMARY_HEADER_SIZE + dataLen;
+    memset(out + CCSDS_TM_PRIMARY_HEADER_SIZE + dataLen,
+        0,
+        CCSDS_TM_DATA_FIELD_SIZE - dataLen);
+
+    uint16_t crc = tmComputeCrc16(out, CCSDS_TM_CRC_COVERAGE);
+    writeU16BE(out + CCSDS_TM_CRC_COVERAGE, crc);
+
+    *bytesWritten = CCSDS_TM_FRAME_LENGTH;
 
     return CCSDS_OK;
+}
 
+CcsdsStatus tmDecodeFrame(const uint8_t* in, size_t inLen, 
+                        TMFrameHeader* h, 
+                        const uint8_t** data, size_t* dataLen) {
+    
+    if (inLen < CCSDS_TM_FRAME_LENGTH) {
+        return CCSDS_TRUNCATED;
+    }
+
+    tmDecodeHeader(in, h);
+
+    uint16_t crc = tmComputeCrc16(in, CCSDS_TM_CRC_COVERAGE);
+    
+    if (crc != readU16BE(in + CCSDS_TM_CRC_COVERAGE)) {
+        return CCSDS_CRC_FAILED;
+    }
+
+    *data = in + CCSDS_TM_PRIMARY_HEADER_SIZE;
+    *dataLen = CCSDS_TM_DATA_FIELD_SIZE;
+
+    return CCSDS_OK;
+}
+
+uint16_t tmComputeCrc16(const uint8_t *data, size_t len) {
+    uint16_t crc = 0xFFFF;
+
+    for (size_t i = 0; i < len; i++) {
+        crc ^= (data[i] << 8);
+
+        for (int bit = 0; bit < 8; bit++) {
+            if (crc & 0x8000) {
+                crc = (crc << 1) ^ 0x1021;
+            } else {
+                crc = crc << 1;
+            }
+            
+        }
+    }
+    return crc;
 }
