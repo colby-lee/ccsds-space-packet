@@ -8,7 +8,8 @@ typedef enum {
     CCSDS_TRUNCATED,
     CCSDS_INVALID_LENGTH,
     CCSDS_CRC_FAILED,        // TM only
-    CCSDS_NO_SYNC            // TM only
+    CCSDS_NO_SYNC,           // CADU only
+    CCSDS_NEED_MORE_DATA     // Used for deframing 
 } CcsdsStatus;
 
 
